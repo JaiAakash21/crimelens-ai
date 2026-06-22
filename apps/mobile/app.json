@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "CrimeLens AI",
+    "slug": "crimelens-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "crimelens",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.crimelens.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "CrimeLens uses your location to report incidents and show nearby safety information.",
+        "NSCameraUsageDescription": "Camera is used to capture incident images for evidence."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "ai.crimelens.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "CrimeLens needs access to your photos to attach evidence to incident reports.",
+          "cameraPermission": "CrimeLens needs camera access to capture incident evidence."
+        }
+      ],
+      "expo-asset"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
