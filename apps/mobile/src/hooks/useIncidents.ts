@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getIncidents, getMyIncidents, createIncident } from "../api/incidents";
+import { getIncident, getMyIncidents, createIncident } from "../api/incidents";
 import { IncidentCreate } from "../types";
 
 export function useIncidents() {
@@ -13,7 +13,7 @@ export function useIncidents() {
 export function useIncident(id: string) {
   return useQuery({
     queryKey: ["incident", id],
-    queryFn: () => getIncidents({ page: 1, per_page: 1 }),
+    queryFn: () => getIncident(id),
     enabled: !!id,
   });
 }

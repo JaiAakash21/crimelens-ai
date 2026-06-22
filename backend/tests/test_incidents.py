@@ -1,7 +1,6 @@
 from unittest.mock import Mock, patch
 
 
-
 def test_health_check(client):
     response = client.get("/api/v1/health")
     assert response.status_code == 200
@@ -59,8 +58,8 @@ def test_create_incident(client, mock_supabase, auth_header):
 
 
 def test_list_incidents(client, mock_supabase, auth_header):
-    mock_supabase.table.return_value.select.return_value.execute.return_value.data = []
-    mock_supabase.table.return_value.select.return_value.count = 0
+    mock_supabase.table.return_value.select.return_value.order.return_value.range.return_value.execute.return_value.data = []
+    mock_supabase.table.return_value.select.return_value.order.return_value.range.return_value.execute.return_value.count = 0
 
     response = client.get("/api/v1/incidents?page=1&per_page=20", headers=auth_header)
     assert response.status_code == 200

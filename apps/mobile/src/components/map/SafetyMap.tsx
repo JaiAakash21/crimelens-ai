@@ -2,13 +2,15 @@ import React from "react";
 import MapView, { Marker, UrlTile, Region, Circle, MapPressEvent } from "react-native-maps";
 import { StyleSheet, ViewStyle } from "react-native";
 import { colors, BANGALORE_DEFAULT_REGION } from "../../constants";
-import { Incident, Hotspot } from "../../types";
+import { Incident, Hotspot, RiskScore } from "../../types";
 import { IncidentMarker } from "./IncidentMarker";
 import { HotspotLayer } from "./HotspotLayer";
+import { RiskScoreLayer } from "./RiskScoreLayer";
 
 interface SafetyMapProps {
   incidents?: Incident[];
   hotspots?: Hotspot[];
+  riskScores?: RiskScore[];
   onPress?: (e: MapPressEvent) => void;
   onMarkerPress?: (incident: Incident) => void;
   initialRegion?: Region;
@@ -19,6 +21,7 @@ interface SafetyMapProps {
 export function SafetyMap({
   incidents = [],
   hotspots = [],
+  riskScores = [],
   onPress,
   onMarkerPress,
   initialRegion = BANGALORE_DEFAULT_REGION,
@@ -40,6 +43,7 @@ export function SafetyMap({
       />
 
       <HotspotLayer hotspots={hotspots} />
+      <RiskScoreLayer scores={riskScores} />
 
       {incidents.map((incident) => (
         <IncidentMarker

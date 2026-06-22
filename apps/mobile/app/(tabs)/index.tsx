@@ -3,8 +3,9 @@ import { View, StyleSheet, Text, ActivityIndicator } from "react-native";
 import { useIncidents } from "../../src/hooks/useIncidents";
 import { useHotspots } from "../../src/hooks/useHotspots";
 import { useLocation } from "../../src/hooks/useLocation";
+import { useRiskScores } from "../../src/hooks/useRiskScores";
 import { SafetyMap } from "../../src/components/map/SafetyMap";
-import { Incident } from "../../src/types";
+import { Incident, RiskScore } from "../../src/types";
 import { colors } from "../../src/constants";
 
 export default function MapScreen() {
@@ -14,6 +15,19 @@ export default function MapScreen() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
     null
   );
+
+  const bounds = useMemo(() => {
+    const lat = location?.latitude ?? 12.9716;
+    const lng = location?.longitude ?? 77.5946;
+    return {
+      sw_lat: lat - 0.05,
+      sw_lng: lng - 0.05,
+      ne_lat: lat + 0.05,
+      ne_lng: lng + 0.05,
+    };
+  }, [location]);
+
+  const { data: riskScores } = useRiskScores(bounds);
 
   const loading = incidentsLoading || hotspotsLoading;
 
@@ -49,6 +63,7 @@ export default function MapScreen() {
       <SafetyMap
         incidents={incidents ?? []}
         hotspots={hotspots ?? []}
+        riskScores={(riskScores?.grid as RiskScore[]) ?? []}
         onPress={handleMapPress}
         onMarkerPress={handleMarkerPress}
         initialRegion={initialRegion}

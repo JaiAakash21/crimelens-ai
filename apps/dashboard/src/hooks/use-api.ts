@@ -30,6 +30,7 @@ export function useIncidents(params?: {
   per_page?: number;
   type?: string;
   status?: string;
+  search?: string;
 }) {
   return useQuery({
     queryKey: ["incidents", params],

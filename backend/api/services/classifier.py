@@ -5,7 +5,6 @@ from typing import Any
 
 from google import genai
 from google.genai import types
-
 from api.config import get_settings
 from api.services.prompts import CLASSIFY_SYSTEM_INSTRUCTION, CLASSIFY_USER_PROMPT
 
@@ -79,9 +78,8 @@ class ClassifierService:
 
             except json.JSONDecodeError:
                 logger.warning(
-                    "Gemini returned invalid JSON (attempt %d): %s",
+                    "Gemini returned invalid JSON (attempt %d)",
                     attempt + 1,
-                    raw_text if "raw_text" in dir() else "N/A",
                 )
             except Exception as e:
                 logger.warning("Gemini API error (attempt %d): %s", attempt + 1, e)

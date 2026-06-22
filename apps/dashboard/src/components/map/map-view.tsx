@@ -24,6 +24,7 @@ export function MapView({
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const leafletRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export function MapView({
         maxZoom: 19,
       }).addTo(map);
 
+      leafletRef.current = L;
       mapInstanceRef.current = map;
     };
 
@@ -59,9 +61,9 @@ export function MapView({
   }, [loading]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || !leafletRef.current) return;
 
-    const L = require("leaflet");
+    const L = leafletRef.current;
     const map = mapInstanceRef.current;
 
     markersRef.current.forEach((m) => map.removeLayer(m));

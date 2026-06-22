@@ -19,6 +19,7 @@ export default function IncidentsPage() {
     per_page: 15,
     type: typeFilter || undefined,
     status: statusFilter || undefined,
+    search: searchQuery || undefined,
   });
 
   const handleReset = () => {

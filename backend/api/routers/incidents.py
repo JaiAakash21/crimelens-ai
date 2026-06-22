@@ -69,6 +69,9 @@ async def list_incidents(
     per_page: int = Query(default=20, ge=1, le=100),
     incident_type: Optional[str] = Query(default=None),
     status: Optional[str] = Query(default=None),
+    search: Optional[str] = Query(
+        default=None, description="Search by title or description"
+    ),
     lat: Optional[float] = Query(default=None),
     lng: Optional[float] = Query(default=None),
     radius: Optional[float] = Query(default=None, description="Radius in meters"),
@@ -81,6 +84,8 @@ async def list_incidents(
         query = query.eq("incident_type", incident_type)
     if status:
         query = query.eq("status", status)
+    if search:
+        query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%")
 
     query = query.order("created_at", desc=True)
     query = query.range((page - 1) * per_page, page * per_page - 1)

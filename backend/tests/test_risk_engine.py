@@ -22,23 +22,30 @@ def test_compute_cell_score_with_incidents():
         {
             "lat": 12.971,
             "lng": 77.593,
-            "incident_type": "robbery",
-            "classification": None,
-            "occurred_at": (now - timedelta(hours=2)).isoformat(),
-        },
-        {
-            "lat": 12.972,
-            "lng": 77.594,
             "incident_type": "assault",
             "classification": None,
-            "occurred_at": (now - timedelta(hours=6)).isoformat(),
+            "occurred_at": (now - timedelta(minutes=30)).isoformat(),
         },
         {
-            "lat": 12.970,
-            "lng": 77.592,
-            "incident_type": "theft",
+            "lat": 12.971,
+            "lng": 77.593,
+            "incident_type": "assault",
             "classification": None,
-            "occurred_at": (now - timedelta(days=1)).isoformat(),
+            "occurred_at": (now - timedelta(minutes=30)).isoformat(),
+        },
+        {
+            "lat": 12.971,
+            "lng": 77.593,
+            "incident_type": "assault",
+            "classification": None,
+            "occurred_at": (now - timedelta(minutes=30)).isoformat(),
+        },
+        {
+            "lat": 12.971,
+            "lng": 77.593,
+            "incident_type": "assault",
+            "classification": None,
+            "occurred_at": (now - timedelta(minutes=30)).isoformat(),
         },
     ]
     hotspots = []

@@ -61,12 +61,14 @@ class ApiClient {
     per_page?: number;
     type?: string;
     status?: string;
+    search?: string;
   }) {
     const search = new URLSearchParams();
     if (params?.page) search.set("page", String(params.page));
     if (params?.per_page) search.set("per_page", String(params.per_page));
     if (params?.type) search.set("incident_type", params.type);
     if (params?.status) search.set("status", params.status);
+    if (params?.search) search.set("search", params.search);
     return this.request<{
       items: import("@/types").Incident[];
       total: number;
