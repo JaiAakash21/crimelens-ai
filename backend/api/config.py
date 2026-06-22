@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     supabase_service_key: str
 
     gemini_api_key: str
-    gemini_model: str = "gemini-2.0-flash-lite"
+    gemini_model: str = "gemini-2.5-flash"
 
     osrm_base_url: str = "https://router.project-osrm.org"
 

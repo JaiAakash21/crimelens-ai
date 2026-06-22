@@ -1,14 +1,18 @@
+import json
 import logging
-from typing import Optional
+import time
+from typing import Any
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from api.config import get_settings
+from api.services.prompts import CLASSIFY_SYSTEM_INSTRUCTION, CLASSIFY_USER_PROMPT
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-INCIDENT_TYPE_MAP = {
+INCIDENT_TYPE_MAP: dict[str, str] = {
     "theft": "theft",
     "pickpocketing": "theft",
     "shoplifting": "theft",
@@ -18,81 +22,93 @@ INCIDENT_TYPE_MAP = {
     "harassment": "harassment",
     "eve teasing": "harassment",
     "catcalling": "harassment",
+    "stalking": "harassment",
     "assault": "assault",
     "physical attack": "assault",
     "fighting": "assault",
     "suspicious": "suspicious_activity",
     "loitering": "suspicious_activity",
-    "stalking": "suspicious_activity",
     "vandalism": "vandalism",
     "property damage": "vandalism",
     "graffiti": "vandalism",
 }
 
-CLASSIFICATION_PROMPT = """You are a crime incident classifier. Given a description of an incident, classify it into exactly one category.
-
-Categories:
-- theft: stealing items without force (pickpocketing, shoplifting, burglary)
-- robbery: taking property by force or threat (snatching, mugging, armed robbery)
-- harassment: unwanted verbal or physical conduct (eve teasing, catcalling, stalking)
-- assault: physical attack causing bodily harm (fighting, beating, hitting)
-- suspicious_activity: behavior that seems unusual or potentially criminal (loitering, surveillance)
-- vandalism: intentional destruction of property (graffiti, breaking things)
-- other: anything that doesn't fit the above
-
-Return ONLY valid JSON with this exact structure:
-{"label": "category_name", "confidence": 0.0-1.0, "reasoning": "one sentence explanation"}
-
-Description: {description}"""
+MAX_RETRIES = 2
+RETRY_DELAY_S = 1.0
 
 
 class ClassifierService:
-    def __init__(self):
-        genai.configure(api_key=settings.gemini_api_key)
-        self.model = genai.GenerativeModel(settings.gemini_model)
+    def __init__(self) -> None:
+        self.client = genai.Client(api_key=settings.gemini_api_key)
 
-    def classify(self, description: str) -> dict:
-        try:
-            prompt = CLASSIFICATION_PROMPT.format(description=description[:2000])
-            response = self.model.generate_content(prompt)
+    def classify(self, title: str, description: str) -> dict[str, Any]:
+        combined = f"{title}. {description}" if title else description
+        truncated = combined[:3000]
 
-            raw_text = response.text.strip()
-            raw_text = (
-                raw_text.removeprefix("```json")
-                .removeprefix("```")
-                .removesuffix("```")
-                .strip()
+        for attempt in range(1 + MAX_RETRIES):
+            try:
+                response = self.client.models.generate_content(
+                    model=settings.gemini_model,
+                    contents=CLASSIFY_USER_PROMPT.format(
+                        title=title or "(no title)",
+                        description=truncated,
+                    ),
+                    config=types.GenerateContentConfig(
+                        system_instruction=CLASSIFY_SYSTEM_INSTRUCTION,
+                        temperature=0.1,
+                        top_p=0.95,
+                        response_mime_type="application/json",
+                    ),
+                )
+
+                raw_text = response.text.strip()
+                result = json.loads(raw_text)
+
+                label = str(result.get("label", "other")).lower().strip()
+                confidence = max(0.0, min(1.0, float(result.get("confidence", 0.5))))
+                reasoning = str(result.get("reasoning", ""))
+                mapped = INCIDENT_TYPE_MAP.get(label, "other")
+
+                return {
+                    "label": label,
+                    "mapped_type": mapped,
+                    "confidence": confidence,
+                    "reasoning": reasoning,
+                    "raw_response": raw_text,
+                }
+
+            except json.JSONDecodeError:
+                logger.warning(
+                    "Gemini returned invalid JSON (attempt %d): %s",
+                    attempt + 1,
+                    raw_text if "raw_text" in dir() else "N/A",
+                )
+            except Exception as e:
+                logger.warning("Gemini API error (attempt %d): %s", attempt + 1, e)
+
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY_S * (2**attempt))
+
+        return {
+            "label": "unknown",
+            "mapped_type": "other",
+            "confidence": 0.0,
+            "reasoning": "",
+            "raw_response": "",
+        }
+
+    def classify_batch(self, items: list[dict[str, str]]) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
+        for item in items:
+            result = self.classify(
+                title=item.get("title", ""),
+                description=item.get("description", ""),
             )
-
-            import json
-
-            result = json.loads(raw_text)
-
-            label = result.get("label", "other")
-            confidence = max(0.0, min(1.0, float(result.get("confidence", 0.5))))
-
-            mapped = INCIDENT_TYPE_MAP.get(label.lower(), "other")
-
-            return {
-                "label": label,
-                "mapped_type": mapped,
-                "confidence": confidence,
-                "reasoning": result.get("reasoning", ""),
-                "raw_response": response.text,
-            }
-
-        except Exception as e:
-            logger.warning("Gemini classification failed: %s", e)
-            return {
-                "label": "unknown",
-                "mapped_type": "other",
-                "confidence": 0.0,
-                "reasoning": "",
-                "raw_response": "",
-            }
+            results.append(result)
+        return results
 
 
-_classifier_instance: Optional[ClassifierService] = None
+_classifier_instance: ClassifierService | None = None
 
 
 def get_classifier() -> ClassifierService:

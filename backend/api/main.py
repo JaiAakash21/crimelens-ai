@@ -10,6 +10,7 @@ from api.routers import (
     dashboard,
     routes,
     auth,
+    classify,
 )
 
 settings = get_settings()
@@ -38,3 +39,4 @@ app.include_router(
 )
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 app.include_router(routes.router, prefix="/api/v1/routes", tags=["Safe Routes"])
+app.include_router(classify.router, prefix="/api/v1/classify", tags=["Classification"])

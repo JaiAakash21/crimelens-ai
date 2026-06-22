@@ -33,7 +33,10 @@ async def create_incident(
     incident = result.data[0]
 
     classifier = get_classifier()
-    classification = classifier.classify(incident["description"])
+    classification = classifier.classify(
+        title=incident.get("title") or "",
+        description=incident.get("description") or "",
+    )
 
     if classification["mapped_type"]:
         supabase.table("incidents").update(
