@@ -1,45 +1,75 @@
+import logging
 import uuid
 from pathlib import Path
-from typing import BinaryIO
 
+from storage3.types import FileOptions
 from supabase import Client
 
 from api.config import get_settings
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
 def upload_incident_image(
     supabase: Client,
     incident_id: str,
-    file: BinaryIO,
+    contents: bytes,
     filename: str,
     mime_type: str,
 ) -> dict:
     ext = Path(filename).suffix or ".jpg"
     object_path = f"incidents/{incident_id}/{uuid.uuid4()}{ext}"
 
-    supabase.storage.from_(settings.storage_bucket).upload(
-        path=object_path,
-        file=file,
-        file_options={"content-type": mime_type},
-    )
+    bucket = supabase.storage.from_(settings.storage_bucket)
 
-    public_url = supabase.storage.from_(settings.storage_bucket).get_public_url(
-        object_path
-    )
-
-    result = (
-        supabase.table("incident_images")
-        .insert(
-            {
-                "incident_id": incident_id,
-                "storage_path": object_path,
-                "mime_type": mime_type,
-            }
+    try:
+        upload_response = bucket.upload(
+            path=object_path,
+            file=contents,
+            file_options=FileOptions({"content-type": mime_type}),
         )
-        .execute()
-    )
+        logger.debug(
+            "Storage upload OK: status=%s, path=%s",
+            upload_response.status_code,
+            object_path,
+        )
+    except Exception as e:
+        logger.exception("Supabase Storage upload failed for path=%s", object_path)
+        raise RuntimeError(f"Storage upload failed for {object_path}: {e}") from e
+
+    try:
+        public_url = bucket.get_public_url(object_path)
+    except Exception as e:
+        logger.exception("Failed to get public URL for path=%s", object_path)
+        raise RuntimeError(f"Failed to get public URL for {object_path}: {e}") from e
+
+    try:
+        result = (
+            supabase.table("incident_images")
+            .insert(
+                {
+                    "incident_id": incident_id,
+                    "storage_path": object_path,
+                    "mime_type": mime_type,
+                }
+            )
+            .execute()
+        )
+    except Exception as e:
+        logger.exception(
+            "DB insert failed for incident_image, cleaning up storage path=%s",
+            object_path,
+        )
+        try:
+            bucket.remove([object_path])
+        except Exception as cleanup_err:
+            logger.warning(
+                "Cleanup of orphaned storage object %s failed: %s",
+                object_path,
+                cleanup_err,
+            )
+        raise RuntimeError(f"Database insert failed for incident image: {e}") from e
 
     return {
         "id": result.data[0]["id"],

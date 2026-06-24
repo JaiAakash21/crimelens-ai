@@ -27,9 +27,10 @@ export default function MapScreen() {
     };
   }, [location]);
 
-  const { data: riskScores } = useRiskScores(bounds);
+  const { data: riskScores, isLoading: riskScoresLoading } =
+    useRiskScores(bounds);
 
-  const loading = incidentsLoading || hotspotsLoading;
+  const loading = incidentsLoading || hotspotsLoading || riskScoresLoading;
 
   const handleMarkerPress = useCallback((incident: Incident) => {
     setSelectedIncident(incident);

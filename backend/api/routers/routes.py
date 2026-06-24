@@ -14,7 +14,7 @@ async def get_safe_route_endpoint(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
-    route = get_safe_route(
+    route = await get_safe_route(
         supabase=supabase,
         origin_lat=body.origin_lat,
         origin_lng=body.origin_lng,

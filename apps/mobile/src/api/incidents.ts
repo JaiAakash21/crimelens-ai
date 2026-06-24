@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import { useAuthStore } from "../store/authStore";
 import { Incident, IncidentCreate, PaginatedResponse } from "../types";
 
 export const createIncident = async (
@@ -10,11 +11,7 @@ export const createIncident = async (
 
   if (image) {
     const formData = new FormData();
-    formData.append("file", {
-      uri: image.uri,
-      type: image.type,
-      name: image.name,
-    } as unknown as Blob);
+    formData.append("file", image as unknown as Blob);
 
     await apiClient.post(`/incidents/${incident.id}/images`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
@@ -40,8 +37,9 @@ export const getIncident = async (id: string): Promise<Incident> => {
 };
 
 export const getMyIncidents = async (): Promise<Incident[]> => {
+  const user = useAuthStore.getState().user;
   const response = await apiClient.get("/incidents", {
-    params: { per_page: 50 },
+    params: { per_page: 50, user_id: user?.id },
   });
   return response.data.items;
 };

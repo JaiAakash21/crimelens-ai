@@ -3,8 +3,7 @@ import logging
 import time
 from typing import Any
 
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from api.config import get_settings
 from api.services.prompts import CLASSIFY_SYSTEM_INSTRUCTION, CLASSIFY_USER_PROMPT
 
@@ -38,7 +37,16 @@ RETRY_DELAY_S = 1.0
 
 class ClassifierService:
     def __init__(self) -> None:
-        self.client = genai.Client(api_key=settings.gemini_api_key)
+        genai.configure(api_key=settings.gemini_api_key)
+        self.model = genai.GenerativeModel(
+            model_name=settings.gemini_model,
+            system_instruction=CLASSIFY_SYSTEM_INSTRUCTION,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.1,
+                top_p=0.95,
+                response_mime_type="application/json",
+            ),
+        )
 
     def classify(self, title: str, description: str) -> dict[str, Any]:
         combined = f"{title}. {description}" if title else description
@@ -46,21 +54,14 @@ class ClassifierService:
 
         for attempt in range(1 + MAX_RETRIES):
             try:
-                response = self.client.models.generate_content(
-                    model=settings.gemini_model,
-                    contents=CLASSIFY_USER_PROMPT.format(
+                response = self.model.generate_content(
+                    CLASSIFY_USER_PROMPT.format(
                         title=title or "(no title)",
                         description=truncated,
                     ),
-                    config=types.GenerateContentConfig(
-                        system_instruction=CLASSIFY_SYSTEM_INSTRUCTION,
-                        temperature=0.1,
-                        top_p=0.95,
-                        response_mime_type="application/json",
-                    ),
                 )
 
-                raw_text = response.text.strip()
+                raw_text = (response.text or "").strip()
                 result = json.loads(raw_text)
 
                 label = str(result.get("label", "other")).lower().strip()

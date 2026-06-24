@@ -1,9 +1,23 @@
 from fastapi import APIRouter, Depends
 
-from api.dependencies import get_current_user, get_supabase_service
+from api.dependencies import get_admin_user, get_current_user, get_supabase_service
 from supabase import Client
 
 router = APIRouter()
+
+
+@router.get("/users")
+async def list_users(
+    admin: dict = Depends(get_admin_user),
+    supabase: Client = Depends(get_supabase_service),
+):
+    result = (
+        supabase.table("profiles")
+        .select("id, email, full_name, avatar_url, role, created_at")
+        .order("created_at", desc=True)
+        .execute()
+    )
+    return result.data or []
 
 
 @router.get("/me")

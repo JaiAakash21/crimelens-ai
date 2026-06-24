@@ -28,7 +28,11 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      SecureStore.deleteItemAsync(TOKEN_KEY);
+      try {
+        SecureStore.deleteItemAsync(TOKEN_KEY);
+      } catch {
+        // SecureStore may fail on web
+      }
     }
     return Promise.reject(error);
   }

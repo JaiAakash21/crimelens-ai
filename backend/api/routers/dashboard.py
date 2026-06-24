@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query
 from supabase import Client
@@ -14,37 +14,40 @@ async def get_dashboard_stats(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=today_start.weekday())
     month_start = today_start.replace(day=1)
 
-    total = supabase.table("incidents").select("*", count="exact").execute()
-    total_count = total.count if hasattr(total, "count") else len(total.data or [])
+    total = supabase.table("incidents").select("*", count="exact").limit(1).execute()
+    total_count = total.count if hasattr(total, "count") else 0
 
     today = (
         supabase.table("incidents")
         .select("*", count="exact")
         .gte("created_at", today_start.isoformat())
+        .limit(1)
         .execute()
     )
-    today_count = today.count if hasattr(today, "count") else len(today.data or [])
+    today_count = today.count if hasattr(today, "count") else 0
 
     week = (
         supabase.table("incidents")
         .select("*", count="exact")
         .gte("created_at", week_start.isoformat())
+        .limit(1)
         .execute()
     )
-    week_count = week.count if hasattr(week, "count") else len(week.data or [])
+    week_count = week.count if hasattr(week, "count") else 0
 
     month = (
         supabase.table("incidents")
         .select("*", count="exact")
         .gte("created_at", month_start.isoformat())
+        .limit(1)
         .execute()
     )
-    month_count = month.count if hasattr(month, "count") else len(month.data or [])
+    month_count = month.count if hasattr(month, "count") else 0
 
     hotspots = supabase.table("hotspots").select("*", count="exact").execute()
     hotspot_count = (
@@ -62,9 +65,9 @@ async def get_dashboard_stats(
         sum(risk_scores_list) / len(risk_scores_list) if risk_scores_list else 50.0
     )
 
-    top_type = supabase.table("incidents").select("incident_type, count").execute()
+    all_types = supabase.table("incidents").select("incident_type").execute()
     type_counts = {}
-    for t in top_type.data or []:
+    for t in all_types.data or []:
         inc_type = t.get("incident_type", "other")
         type_counts[inc_type] = type_counts.get(inc_type, 0) + 1
     most_common = max(type_counts, key=type_counts.get) if type_counts else None
@@ -97,7 +100,7 @@ async def get_trends(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
-    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
     result = (
         supabase.table("incidents")
@@ -130,7 +133,7 @@ async def get_categories(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
-    cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
 
     result = (
         supabase.table("incidents")

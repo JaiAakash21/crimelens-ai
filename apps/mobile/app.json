@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "favicon": "./assets/favicon.png",
     "scheme": "crimelens",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -21,6 +22,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a2e"
       },
       "package": "ai.crimelens.app",

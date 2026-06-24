@@ -310,8 +310,7 @@ CREATE INDEX idx_risk_scores_expires ON risk_scores(expires_at);
 CREATE INDEX idx_risk_scores_location ON risk_scores(lat, lng);
 CREATE INDEX idx_risk_scores_level ON risk_scores(level);
 CREATE INDEX idx_risk_scores_active
-    ON risk_scores(lat, lng, score)
-    WHERE expires_at > now();
+    ON risk_scores(lat, lng, expires_at);
 
 -- 3.7 safe_routes indexes
 CREATE INDEX idx_safe_routes_user ON safe_routes(user_id);

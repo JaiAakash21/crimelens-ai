@@ -1,8 +1,14 @@
+import logging
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
 from supabase import Client
 
+from api.config import get_settings
 from api.dependencies import get_current_user, get_supabase_service
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
 from api.models.incident import (
     IncidentCreate,
     IncidentUpdate,
@@ -72,6 +78,7 @@ async def list_incidents(
     search: Optional[str] = Query(
         default=None, description="Search by title or description"
     ),
+    user_id: Optional[str] = Query(default=None, description="Filter by user ID"),
     lat: Optional[float] = Query(default=None),
     lng: Optional[float] = Query(default=None),
     radius: Optional[float] = Query(default=None, description="Radius in meters"),
@@ -86,6 +93,8 @@ async def list_incidents(
         query = query.eq("status", status)
     if search:
         query = query.or_(f"title.ilike.%{search}%,description.ilike.%{search}%")
+    if user_id:
+        query = query.eq("user_id", user_id)
 
     query = query.order("created_at", desc=True)
     query = query.range((page - 1) * per_page, page * per_page - 1)
@@ -222,13 +231,28 @@ async def upload_image(
             status_code=400, detail="Only JPEG, PNG, and WebP images are allowed"
         )
 
-    result = upload_incident_image(
-        supabase=supabase,
-        incident_id=incident_id,
-        file=file.file,
-        filename=file.filename or "image.jpg",
-        mime_type=file.content_type or "image/jpeg",
-    )
+    contents = await file.read()
+    MAX_SIZE = settings.max_image_size_mb * 1024 * 1024
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Image too large. Maximum size is {settings.max_image_size_mb}MB",
+        )
+
+    try:
+        result = upload_incident_image(
+            supabase=supabase,
+            incident_id=incident_id,
+            contents=contents,
+            filename=file.filename or "image.jpg",
+            mime_type=file.content_type or "image/jpeg",
+        )
+    except Exception as e:
+        logger.exception("Image upload failed for incident %s", incident_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
 
     return result
 
@@ -261,3 +285,4 @@ async def delete_image(
     from api.services.storage import delete_incident_image as delete_image_service
 
     delete_image_service(supabase, image_id)
+    return

@@ -16,6 +16,7 @@ Usage:
 """
 
 import logging
+import math
 from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
 
@@ -106,9 +107,10 @@ def _run_dbscan(
 
     lat_scale = meters_per_degree_lat(float(np.mean(coords[:, 0])))
     eps_degrees = settings.hotspot_eps_meters / lat_scale
+    eps_radians = eps_degrees * (math.pi / 180.0)
 
     clustering = DBSCAN(
-        eps=eps_degrees,
+        eps=eps_radians,
         min_samples=settings.hotspot_min_samples,
         metric="haversine",
     )

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-def get_safe_route(
+async def get_safe_route(
     supabase: Client,
     origin_lat: float,
     origin_lng: float,
@@ -19,10 +19,8 @@ def get_safe_route(
     dest_lng: float,
     prefer_safety: bool = True,
 ) -> dict:
-    alternatives = []
-
     try:
-        route = _fetch_osrm_route(origin_lat, origin_lng, dest_lat, dest_lng)
+        route = await _fetch_osrm_route(origin_lat, origin_lng, dest_lat, dest_lng)
         if not route:
             raise ValueError("No route returned from OSRM")
     except Exception as e:
@@ -43,6 +41,7 @@ def get_safe_route(
     coordinates = route["geometry"]["coordinates"]
     distance = route["distance"]
     duration = route["duration"]
+    alternatives = route.get("alternatives", [])
 
     risk_scores = _fetch_risk_scores(supabase)
 
@@ -56,6 +55,16 @@ def get_safe_route(
     avg_safety = (sum(segment_scores) / len(segment_scores)) if segment_scores else 50.0
     safety_score = 100.0 - avg_safety
     safety_score = max(0.0, min(100.0, safety_score))
+
+    for alt in alternatives:
+        alt_coords = alt["route_geometry"]["coordinates"]
+        seg_scores = []
+        for i in range(len(alt_coords) - 1):
+            seg_lat = (alt_coords[i][1] + alt_coords[i + 1][1]) / 2
+            seg_lng = (alt_coords[i][0] + alt_coords[i + 1][0]) / 2
+            seg_scores.append(_score_point(seg_lat, seg_lng, risk_scores))
+        avg_alt = (sum(seg_scores) / len(seg_scores)) if seg_scores else 50.0
+        alt["safety_score"] = 100.0 - avg_alt
 
     if prefer_safety and len(alternatives) > 0:
         alternatives.sort(key=lambda a: a["safety_score"], reverse=True)
@@ -83,11 +92,18 @@ def get_safe_route(
         "safety_score": round(safety_score, 1),
         "distance_meters": distance,
         "estimated_time_secs": duration,
-        "alternative_routes": alternatives,
+        "alternative_routes": [
+            {
+                "safety_score": a.get("safety_score", 0.0),
+                "distance_meters": a["distance"],
+                "estimated_time_secs": a["duration"],
+            }
+            for a in alternatives
+        ],
     }
 
 
-def _fetch_osrm_route(
+async def _fetch_osrm_route(
     origin_lat: float, origin_lng: float, dest_lat: float, dest_lng: float
 ) -> Optional[dict]:
     url = (
@@ -96,8 +112,8 @@ def _fetch_osrm_route(
         "?overview=full&geometries=geojson&steps=false&alternatives=true"
     )
 
-    with httpx.Client(timeout=10.0) as client:
-        resp = client.get(url)
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.get(url)
         resp.raise_for_status()
         data = resp.json()
 

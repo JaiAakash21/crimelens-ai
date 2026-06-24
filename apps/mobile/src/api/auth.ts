@@ -58,7 +58,7 @@ export const getCurrentSession = async () => {
   return null;
 };
 
-const fetchProfile = async (token: string): Promise<User> => {
+export const fetchProfile = async (token: string): Promise<User> => {
   const response = await apiClient.get("/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
   });

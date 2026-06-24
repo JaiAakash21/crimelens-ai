@@ -12,6 +12,10 @@ python-multipart==0.0.19
 supabase==2.9.0
 gotrue>=2.7.0
 
+# JWT validation (local, avoids relying on supabase.auth.get_user())
+pyjwt>=2.0.0
+cryptography>=41.0.0
+
 # AI/ML
 google-generativeai==0.8.3
 scikit-learn==1.6.1
@@ -22,6 +26,9 @@ httpx>=0.26,<0.28
 
 # Image processing (optional — for resize/thumbnails)
 # Pillow==11.1.0
+
+# ML — ConvexHull for hotspot geometry
+scipy>=1.14.0
 
 # Development
 # ============================================

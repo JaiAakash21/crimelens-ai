@@ -1,13 +1,40 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getCurrentSession, loginWithEmail, signupWithEmail, logout } from "../api/auth";
+import { supabase } from "../lib/supabase";
+import {
+  getCurrentSession,
+  fetchProfile,
+  logout as apiLogout,
+} from "../api/auth";
+import { setAuthToken, clearAuthToken } from "../api/client";
 import { useAuthStore } from "../store/authStore";
 
 export function useAuth() {
-  const { user, isAuthenticated, isLoading, setUser, setIsLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading, setIsLoading } = useAuthStore();
 
   useEffect(() => {
-    getCurrentSession().finally(() => setIsLoading(false));
+    getCurrentSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_OUT") {
+        await clearAuthToken();
+        useAuthStore.getState().logout();
+      } else if (
+        session?.access_token &&
+        (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")
+      ) {
+        await setAuthToken(session.access_token);
+        try {
+          const profile = await fetchProfile(session.access_token);
+          useAuthStore.getState().setUser(profile);
+        } catch {
+          await apiLogout();
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   return { user, isAuthenticated, isLoading };
@@ -16,6 +43,7 @@ export function useAuth() {
 export function useLogin() {
   return {
     login: async (email: string, password: string) => {
+      const { loginWithEmail } = await import("../api/auth");
       return loginWithEmail(email, password);
     },
   };
@@ -24,6 +52,7 @@ export function useLogin() {
 export function useSignup() {
   return {
     signup: async (email: string, password: string, fullName: string) => {
+      const { signupWithEmail } = await import("../api/auth");
       return signupWithEmail(email, password, fullName);
     },
   };
@@ -32,7 +61,7 @@ export function useSignup() {
 export function useLogout() {
   return {
     logout: async () => {
-      await logout();
+      await apiLogout();
     },
   };
 }

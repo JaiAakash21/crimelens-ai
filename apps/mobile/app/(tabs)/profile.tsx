@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { router } from "expo-router";
 import { Card } from "../../src/components/ui/Card";
@@ -18,8 +19,15 @@ import type { Incident } from "../../src/types";
 export default function ProfileScreen() {
   const { user } = useAuth();
   const { logout } = useLogout();
-  const { data: incidents } = useIncidents();
+  const { data: incidents, isRefetching, refetch } = useIncidents();
   const incidentList = incidents as Incident[] | undefined;
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
 
   const handleLogout = () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -39,6 +47,13 @@ export default function ProfileScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+        />
+      }
     >
       <View style={styles.avatar}>
         <View style={styles.avatarCircle}>

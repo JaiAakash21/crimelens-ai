@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from supabase import Client
 
@@ -102,7 +102,7 @@ def _compute_cell_score(
 
 
 def refresh_risk_scores(supabase: Client) -> int:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     cutoff = now - timedelta(days=settings.hotspot_incident_days)
 
     incidents_resp = (
@@ -138,6 +138,7 @@ def refresh_risk_scores(supabase: Client) -> int:
                 "score": result["score"],
                 "level": result["level"],
                 "factors": result["factors"],
+                "grid_cell_id": f"{cell_lat},{cell_lng}",
                 "expires_at": (
                     now + timedelta(minutes=settings.risk_score_ttl_minutes)
                 ).isoformat(),
