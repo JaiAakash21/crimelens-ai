@@ -3,7 +3,9 @@ import { supabase } from "../lib/supabase";
 import {
   getCurrentSession,
   fetchProfile,
+  loginWithEmail,
   logout as apiLogout,
+  signupWithEmail,
 } from "../api/auth";
 import { setAuthToken, clearAuthToken } from "../api/client";
 import { useAuthStore } from "../store/authStore";
@@ -12,7 +14,9 @@ export function useAuth() {
   const { user, isAuthenticated, isLoading, setIsLoading } = useAuthStore();
 
   useEffect(() => {
-    getCurrentSession();
+    getCurrentSession().catch(() => {
+      useAuthStore.getState().setIsLoading(false);
+    });
 
     const {
       data: { subscription },
@@ -43,7 +47,6 @@ export function useAuth() {
 export function useLogin() {
   return {
     login: async (email: string, password: string) => {
-      const { loginWithEmail } = await import("../api/auth");
       return loginWithEmail(email, password);
     },
   };
@@ -52,7 +55,6 @@ export function useLogin() {
 export function useSignup() {
   return {
     signup: async (email: string, password: string, fullName: string) => {
-      const { signupWithEmail } = await import("../api/auth");
       return signupWithEmail(email, password, fullName);
     },
   };

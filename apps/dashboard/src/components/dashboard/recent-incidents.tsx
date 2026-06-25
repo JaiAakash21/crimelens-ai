@@ -14,9 +14,10 @@ interface RecentIncidentsProps {
 
 const statusVariant: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
   reported: "destructive",
-  under_review: "secondary",
+  verified: "default",
   investigating: "outline",
   resolved: "default",
+  dismissed: "secondary",
 };
 
 export function RecentIncidents({ incidents, loading }: RecentIncidentsProps) {

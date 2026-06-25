@@ -14,13 +14,12 @@ import { Button } from "../../src/components/ui/Button";
 import { useAuth, useLogout } from "../../src/hooks/useAuth";
 import { useIncidents } from "../../src/hooks/useIncidents";
 import { colors } from "../../src/constants";
-import type { Incident } from "../../src/types";
 
 export default function ProfileScreen() {
   const { user } = useAuth();
   const { logout } = useLogout();
   const { data: incidents, isRefetching, refetch } = useIncidents();
-  const incidentList = incidents as Incident[] | undefined;
+  const incidentList = incidents;
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = useCallback(async () => {

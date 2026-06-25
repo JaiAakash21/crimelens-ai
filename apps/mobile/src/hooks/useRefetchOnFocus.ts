@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 
+// NOTE: This hook is currently unused but kept for future use.
+// It invalidates all React Query queries when the app returns to the foreground.
 export function useRefetchOnFocus() {
   const queryClient = useQueryClient();
   const appState = useRef(AppState.currentState);

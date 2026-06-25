@@ -4,11 +4,11 @@ import { useHotspots, useRiskScores } from "@/hooks/use-api";
 import { HotspotList } from "@/components/hotspots/hotspot-list";
 import { RiskZoneCard } from "@/components/hotspots/risk-zone-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Flame } from "lucide-react";
+import { AlertCircle, Flame } from "lucide-react";
 
 export default function HotspotsPage() {
-  const { data: hotspotsData, isLoading: hotspotsLoading } = useHotspots();
-  const { data: riskData, isLoading: riskLoading } = useRiskScores(
+  const { data: hotspotsData, isLoading: hotspotsLoading, isError: hotspotsError } = useHotspots();
+  const { data: riskData, isLoading: riskLoading, isError: riskError } = useRiskScores(
     12.8, 77.4, 13.2, 77.8
   );
 
@@ -20,6 +20,13 @@ export default function HotspotsPage() {
           AI-detected crime hotspots and risk zones
         </p>
       </div>
+
+      {(hotspotsError || riskError) && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load hotspot data. Please try again later.
+        </div>
+      )}
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">

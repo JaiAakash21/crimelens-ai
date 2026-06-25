@@ -5,6 +5,7 @@ os.environ["SUPABASE_URL"] = "https://test.supabase.co"
 os.environ["SUPABASE_ANON_KEY"] = "test-anon-key"
 os.environ["SUPABASE_SERVICE_KEY"] = "test-service-key"
 os.environ["GEMINI_API_KEY"] = "test-gemini-key"
+os.environ["ENABLE_RATE_LIMITING"] = "false"
 
 import pytest
 from fastapi.testclient import TestClient

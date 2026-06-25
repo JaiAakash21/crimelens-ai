@@ -5,13 +5,13 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { IncidentTrendChart } from "@/components/dashboard/incident-trend-chart";
 import { RiskDistributionChart } from "@/components/dashboard/risk-distribution-chart";
 import { RecentIncidents } from "@/components/dashboard/recent-incidents";
-import { AlertTriangle, Flame, Shield, Activity } from "lucide-react";
+import { AlertCircle, AlertTriangle, Flame, Shield, Activity } from "lucide-react";
 
 export default function DashboardOverview() {
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: trends, isLoading: trendsLoading } = useTrends(30);
-  const { data: categories, isLoading: categoriesLoading } = useCategories(30);
-  const { data: incidents, isLoading: incidentsLoading } = useIncidents({ per_page: 6 });
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useDashboardStats();
+  const { data: trends, isLoading: trendsLoading, isError: trendsError } = useTrends(30);
+  const { data: categories, isLoading: categoriesLoading, isError: categoriesError } = useCategories(30);
+  const { data: incidents, isLoading: incidentsLoading, isError: incidentsError } = useIncidents({ per_page: 6 });
 
   return (
     <div className="space-y-6">
@@ -21,6 +21,13 @@ export default function DashboardOverview() {
           Real-time safety intelligence for your city
         </p>
       </div>
+
+      {(statsError || trendsError || categoriesError || incidentsError) && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load some dashboard data. Please try again later.
+        </div>
+      )}
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

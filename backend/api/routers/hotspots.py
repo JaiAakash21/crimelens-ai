@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
 
-from api.dependencies import get_supabase_service, get_admin_user
+from api.dependencies import get_current_user, get_supabase_service, get_admin_user
 from api.models.hotspot import HotspotResponse, HotspotListResponse
 from api.services.hotspot_detector import detect_hotspots, detect_hotspots_dry_run
 
@@ -11,6 +11,7 @@ router = APIRouter()
 @router.get("", response_model=HotspotListResponse)
 async def list_hotspots(
     min_risk: str | None = Query(None, description="Filter by minimum risk level"),
+    current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
     query = supabase.table("hotspots").select("*").order("point_count", desc=True)
@@ -28,6 +29,7 @@ async def list_hotspots(
 @router.get("/{hotspot_id}", response_model=HotspotResponse)
 async def get_hotspot(
     hotspot_id: str,
+    current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_service),
 ):
     result = (

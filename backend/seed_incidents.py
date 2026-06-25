@@ -94,7 +94,11 @@ def sign_in() -> str:
         "apikey": SUPABASE_ANON_KEY,
         "Content-Type": "application/json",
     }
-    payload = {"email": "test1@example.com", "password": "Password123!"}
+    # Replace with your test credentials
+    payload = {
+        "email": "your_test_email@example.com",
+        "password": "your_test_password_here",
+    }
     resp = requests.post(url, json=payload, headers=headers)
     resp.raise_for_status()
     data = resp.json()

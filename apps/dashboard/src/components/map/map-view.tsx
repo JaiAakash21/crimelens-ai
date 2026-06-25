@@ -78,9 +78,17 @@ export function MapView({
     incidents?.forEach((inc) => {
       const marker = L.marker([inc.lat, inc.lng], { icon })
         .addTo(map)
-        .bindPopup(
-          `<b>${inc.title}</b><br/>${inc.incident_type.replace(/_/g, " ")}<br/>${new Date(inc.occurred_at).toLocaleDateString()}`
-        );
+        .bindPopup(() => {
+          const el = document.createElement("div");
+          const b = document.createElement("b");
+          b.textContent = inc.title;
+          el.appendChild(b);
+          el.appendChild(document.createElement("br"));
+          el.appendChild(document.createTextNode(inc.incident_type.replace(/_/g, " ")));
+          el.appendChild(document.createElement("br"));
+          el.appendChild(document.createTextNode(new Date(inc.occurred_at).toLocaleDateString()));
+          return el;
+        });
       markersRef.current.push(marker);
     });
 
@@ -102,9 +110,17 @@ export function MapView({
         weight: 2,
       })
         .addTo(map)
-        .bindPopup(
-          `<b>Hotspot #${hs.cluster_id}</b><br/>Risk: ${hs.risk_level}<br/>Incidents: ${hs.point_count}`
-        );
+        .bindPopup(() => {
+          const el = document.createElement("div");
+          const b = document.createElement("b");
+          b.textContent = `Hotspot #${hs.cluster_id}`;
+          el.appendChild(b);
+          el.appendChild(document.createElement("br"));
+          el.appendChild(document.createTextNode(`Risk: ${hs.risk_level}`));
+          el.appendChild(document.createElement("br"));
+          el.appendChild(document.createTextNode(`Incidents: ${hs.point_count}`));
+          return el;
+        });
       markersRef.current.push(circle);
     });
   }, [incidents, hotspots]);

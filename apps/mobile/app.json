@@ -43,7 +43,8 @@
           "cameraPermission": "CrimeLens needs camera access to capture incident evidence."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

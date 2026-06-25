@@ -2,16 +2,26 @@ import logging
 
 from supabase import create_client, Client
 
-from api.config import get_settings
+from api.config import get_settings, Settings
 
 logger = logging.getLogger(__name__)
-_settings = get_settings()
 
 _supabase_anon: Client | None = None
 _supabase_service: Client | None = None
 
 
+def _get_settings() -> Settings | None:
+    try:
+        return get_settings()
+    except Exception as e:
+        logger.warning("Settings not loaded: %s", e)
+        return None
+
+
 def _create_safe_client(url: str, key: str) -> Client | None:
+    if not url or not key:
+        logger.warning("Supabase URL or key is empty, skipping client creation")
+        return None
     try:
         return create_client(supabase_url=url, supabase_key=key)
     except Exception as e:
@@ -22,9 +32,12 @@ def _create_safe_client(url: str, key: str) -> Client | None:
 def get_supabase_anon() -> Client | None:
     global _supabase_anon
     if _supabase_anon is None:
+        settings = _get_settings()
+        if settings is None:
+            return None
         _supabase_anon = _create_safe_client(
-            url=_settings.supabase_url,
-            key=_settings.supabase_anon_key,
+            url=settings.supabase_url,
+            key=settings.supabase_anon_key,
         )
     return _supabase_anon
 
@@ -32,10 +45,11 @@ def get_supabase_anon() -> Client | None:
 def get_supabase_service() -> Client | None:
     global _supabase_service
     if _supabase_service is None:
+        settings = _get_settings()
+        if settings is None:
+            return None
         _supabase_service = _create_safe_client(
-            url=_settings.supabase_url,
-            key=_settings.supabase_service_key,
+            url=settings.supabase_url,
+            key=settings.supabase_service_key,
         )
     return _supabase_service
-
-

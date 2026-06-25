@@ -3,10 +3,10 @@
 import { useUsers } from "@/hooks/use-api";
 import { UserTable } from "@/components/users/user-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users } from "lucide-react";
+import { AlertCircle, Users } from "lucide-react";
 
 export default function UsersPage() {
-  const { data: users, isLoading } = useUsers();
+  const { data: users, isLoading, isError } = useUsers();
 
   return (
     <div className="space-y-6">
@@ -16,6 +16,13 @@ export default function UsersPage() {
           Manage citizens, analysts, and administrators
         </p>
       </div>
+
+      {isError && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load users. Please try again later.
+        </div>
+      )}
 
       <Card>
         <CardHeader className="py-4">

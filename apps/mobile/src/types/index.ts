@@ -65,6 +65,8 @@ export interface RiskScore {
   lng: number;
   score: number;
   level: RiskLevel;
+  factors: Record<string, number>;
+  grid_cell_id?: string;
 }
 
 export interface DashboardStats {

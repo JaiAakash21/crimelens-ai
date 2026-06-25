@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 from api.services.risk_engine import (
@@ -9,7 +9,7 @@ from api.services.risk_engine import (
 
 
 def test_compute_cell_score_empty():
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     result = _compute_cell_score(12.97, 77.59, [], [], now)
     assert 0 <= result["score"] <= 100
     assert result["level"] in ("low", "moderate", "high", "critical")
@@ -17,7 +17,7 @@ def test_compute_cell_score_empty():
 
 
 def test_compute_cell_score_with_incidents():
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     incidents = [
         {
             "lat": 12.971,
@@ -56,7 +56,7 @@ def test_compute_cell_score_with_incidents():
 
 
 def test_compute_cell_score_with_hotspot():
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     incidents = [
         {
             "lat": 12.971,
@@ -75,7 +75,7 @@ def test_compute_cell_score_with_hotspot():
 
 
 def test_compute_cell_score_far_away():
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     incidents = [
         {
             "lat": 13.100,

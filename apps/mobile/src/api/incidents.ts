@@ -10,12 +10,17 @@ export const createIncident = async (
   const incident = response.data;
 
   if (image) {
-    const formData = new FormData();
-    formData.append("file", image as unknown as Blob);
+    try {
+      const formData = new FormData();
+      formData.append("file", image as unknown as Blob);
 
-    await apiClient.post(`/incidents/${incident.id}/images`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+      await apiClient.post(`/incidents/${incident.id}/images`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } catch {
+      await apiClient.delete(`/incidents/${incident.id}`).catch(() => {});
+      throw new Error("Image upload failed. Incident has been rolled back.");
+    }
   }
 
   return incident;

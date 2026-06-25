@@ -58,10 +58,8 @@ export const getCurrentSession = async () => {
   return null;
 };
 
-export const fetchProfile = async (token: string): Promise<User> => {
-  const response = await apiClient.get("/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const fetchProfile = async (_token?: string): Promise<User> => {
+  const response = await apiClient.get("/auth/me");
   return response.data;
 };
 

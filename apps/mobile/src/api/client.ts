@@ -26,13 +26,15 @@ apiClient.interceptors.request.use(async (config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       try {
-        SecureStore.deleteItemAsync(TOKEN_KEY);
+        await SecureStore.deleteItemAsync(TOKEN_KEY);
       } catch {
         // SecureStore may fail on web
       }
+      const { useAuthStore } = await import("../store/authStore");
+      useAuthStore.getState().logout();
     }
     return Promise.reject(error);
   }

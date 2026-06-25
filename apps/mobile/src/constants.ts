@@ -41,9 +41,7 @@ export const incidentTypes = [
   { label: "Other", value: "other" },
 ] as const;
 
-export const API_BASE_URL = __DEV__
-  ? "http://localhost:8000/api/v1"
-  : "https://api.crimelens.ai/api/v1";
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
 
 export const MAP_STYLE = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from supabase import Client
 
 from api.config import get_settings
-from api.database import get_supabase_anon, get_supabase_service
+from api.database import get_supabase_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -24,9 +24,7 @@ def _check_supabase(supabase: Client | None) -> dict:
     if supabase is None:
         return {"status": "unhealthy", "error": "Supabase client not available"}
     try:
-        result = (
-            supabase.table("incidents").select("id", count="exact").limit(1).execute()
-        )
+        supabase.table("incidents").select("id", count="exact").limit(1).execute()
         return {
             "status": "healthy",
             "latency_ms": 0,
@@ -37,7 +35,7 @@ def _check_supabase(supabase: Client | None) -> dict:
 
 
 @router.get("/health")
-async def health_check():
+async def health_check() -> dict:
     supabase = _get_supabase()
     db_health = _check_supabase(supabase)
 

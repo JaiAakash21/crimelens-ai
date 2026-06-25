@@ -89,10 +89,9 @@ export default function ReportScreen() {
         ]
       );
     } catch (err) {
-      Alert.alert(
-        "Error",
-        "Failed to submit report. Please try again."
-      );
+      const message =
+        err instanceof Error ? err.message : "Failed to submit report. Please try again.";
+      Alert.alert("Error", message);
     }
   };
 

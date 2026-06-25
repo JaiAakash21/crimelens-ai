@@ -55,7 +55,7 @@ export function useRiskScores(
   return useQuery({
     queryKey: ["risk-scores", swLat, swLng, neLat, neLng],
     queryFn: () => api.getRiskScores(swLat, swLng, neLat, neLng),
-    enabled: !!swLat && !!neLat,
+    enabled: swLat !== undefined && neLat !== undefined,
   });
 }
 

@@ -32,7 +32,19 @@ function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
-          <Stack.Screen name="(tabs)" />
+          <>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="incident/[id]"
+              options={{
+                headerShown: true,
+                headerStyle: { backgroundColor: colors.primary },
+                headerTintColor: colors.white,
+                headerTitleStyle: { fontWeight: "700" },
+                animation: "slide_from_right",
+              }}
+            />
+          </>
         ) : (
           <Stack.Screen name="(auth)" />
         )}

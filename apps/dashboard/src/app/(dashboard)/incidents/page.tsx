@@ -1,25 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useIncidents } from "@/hooks/use-api";
 import { IncidentTable } from "@/components/incidents/incident-table";
 import { IncidentFilters } from "@/components/incidents/incident-filters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 
 export default function IncidentsPage() {
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useIncidents({
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data, isLoading, isError } = useIncidents({
     page,
     per_page: 15,
     type: typeFilter || undefined,
     status: statusFilter || undefined,
-    search: searchQuery || undefined,
+    search: debouncedSearch || undefined,
   });
 
   const handleReset = () => {
@@ -43,6 +49,13 @@ export default function IncidentsPage() {
           New Incident
         </Button>
       </div>
+
+      {isError && (
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Failed to load incidents. Please try again later.
+        </div>
+      )}
 
       <IncidentFilters
         typeFilter={typeFilter}

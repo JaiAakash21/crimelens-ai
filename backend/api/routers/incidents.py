@@ -7,8 +7,6 @@ from supabase import Client
 from api.config import get_settings
 from api.dependencies import get_current_user, get_supabase_service
 
-logger = logging.getLogger(__name__)
-settings = get_settings()
 from api.models.incident import (
     IncidentCreate,
     IncidentUpdate,
@@ -19,6 +17,9 @@ from api.models.incident import (
 from api.services.classifier import get_classifier
 from api.services.storage import upload_incident_image
 from api.utils.pagination import paginate
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
 
 router = APIRouter()
 

@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     max_image_size_mb: int = 5
     allowed_image_types: list[str] = ["image/jpeg", "image/png", "image/webp"]
 
-    cors_origins: list[str] = ["*"]
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     hotspot_min_samples: int = 3
     hotspot_eps_meters: float = 300.0
@@ -29,6 +29,10 @@ class Settings(BaseSettings):
 
     risk_score_ttl_minutes: int = 60
     risk_grid_resolution: int = 9
+
+    enable_rate_limiting: bool = True
+    rate_limit_requests: int = 10
+    rate_limit_window_seconds: int = 60
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

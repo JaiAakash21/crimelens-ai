@@ -1,9 +1,87 @@
-from fastapi import APIRouter, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from api.dependencies import get_admin_user, get_current_user, get_supabase_service
 from supabase import Client
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., examples=["analyst@crimelens.ai"])
+    password: str = Field(..., min_length=1)
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str = ""
+    token_type: str = "bearer"
+    user: dict
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login(
+    body: LoginRequest,
+    supabase: Client = Depends(get_supabase_service),
+):
+    try:
+        result = supabase.auth.sign_in_with_password(
+            {"email": body.email, "password": body.password}
+        )
+    except Exception as e:
+        logger.warning("Login failed for %s: %s", body.email, e)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    if not result.session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    return {
+        "access_token": result.session.access_token,
+        "refresh_token": result.session.refresh_token or "",
+        "token_type": "bearer",
+        "user": result.user.model_dump() if result.user else {},
+    }
+
+
+@router.post("/refresh", response_model=LoginResponse)
+async def refresh_token(
+    body: RefreshRequest,
+    supabase: Client = Depends(get_supabase_service),
+):
+    try:
+        result = supabase.auth.refresh_session(body.refresh_token)
+    except Exception as e:
+        logger.warning("Token refresh failed: %s", e)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    if not result.session:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh failed",
+        )
+
+    return {
+        "access_token": result.session.access_token,
+        "refresh_token": result.session.refresh_token or "",
+        "token_type": "bearer",
+        "user": result.user.model_dump() if result.user else {},
+    }
 
 
 @router.get("/users")

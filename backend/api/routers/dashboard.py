@@ -57,7 +57,7 @@ async def get_dashboard_stats(
     risk = (
         supabase.table("risk_scores")
         .select("score")
-        .gt("expires_at", "now()")
+        .gt("expires_at", datetime.now(timezone.utc).isoformat())
         .execute()
     )
     risk_scores_list = [r["score"] for r in (risk.data or [])]
@@ -76,7 +76,7 @@ async def get_dashboard_stats(
         supabase.table("risk_scores")
         .select("lat, lng, score, level")
         .gte("score", 50)
-        .gt("expires_at", "now()")
+        .gt("expires_at", datetime.now(timezone.utc).isoformat())
         .order("score", desc=True)
         .limit(5)
         .execute()

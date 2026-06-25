@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
@@ -19,24 +20,26 @@ async def get_safe_route(
     dest_lng: float,
     prefer_safety: bool = True,
 ) -> dict:
+    direct_distance = haversine(origin_lat, origin_lng, dest_lat, dest_lng)
+
+    fallback = {
+        "route_geometry": {
+            "type": "LineString",
+            "coordinates": [[origin_lng, origin_lat], [dest_lng, dest_lat]],
+        },
+        "safety_score": 50.0,
+        "distance_meters": direct_distance,
+        "estimated_time_secs": int(direct_distance / 1.4),
+        "alternative_routes": [],
+    }
+
     try:
         route = await _fetch_osrm_route(origin_lat, origin_lng, dest_lat, dest_lng)
         if not route:
             raise ValueError("No route returned from OSRM")
     except Exception as e:
         logger.warning("OSRM routing failed: %s. Falling back to straight-line.", e)
-        return {
-            "route_geometry": {
-                "type": "LineString",
-                "coordinates": [[origin_lng, origin_lat], [dest_lng, dest_lat]],
-            },
-            "safety_score": 50.0,
-            "distance_meters": haversine(origin_lat, origin_lng, dest_lat, dest_lng),
-            "estimated_time_secs": int(
-                haversine(origin_lat, origin_lng, dest_lat, dest_lng) / 1.4
-            ),
-            "alternative_routes": [],
-        }
+        return fallback
 
     coordinates = route["geometry"]["coordinates"]
     distance = route["distance"]
@@ -126,13 +129,13 @@ async def _fetch_osrm_route(
     return {
         "geometry": main_route["geometry"],
         "distance": main_route["distance"],
-        "duration": main_route["duration"],
+        "duration": int(main_route["duration"]),
         "alternatives": [
             {
                 "route_geometry": a["geometry"],
                 "safety_score": 0.0,
                 "distance": a["distance"],
-                "duration": a["duration"],
+                "duration": int(a["duration"]),
             }
             for a in alternatives
         ],
@@ -143,7 +146,7 @@ def _fetch_risk_scores(supabase: Client) -> list[dict]:
     result = (
         supabase.table("risk_scores")
         .select("lat, lng, score")
-        .gt("expires_at", "now()")
+        .gt("expires_at", datetime.now(timezone.utc).isoformat())
         .execute()
     )
     return result.data or []

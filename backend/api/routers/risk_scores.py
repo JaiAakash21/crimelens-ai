@@ -1,8 +1,11 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from supabase import Client
 
-from api.dependencies import get_supabase_service
+from api.dependencies import get_admin_user, get_supabase_anon, get_supabase_service
 from api.models.risk_score import RiskScoreResponse, RiskScorePoint
+from api.services.risk_engine import refresh_risk_scores
 
 router = APIRouter()
 
@@ -13,7 +16,7 @@ async def get_risk_scores(
     sw_lng: float = Query(..., description="South-west corner longitude"),
     ne_lat: float = Query(..., description="North-east corner latitude"),
     ne_lng: float = Query(..., description="North-east corner longitude"),
-    supabase: Client = Depends(get_supabase_service),
+    supabase: Client = Depends(get_supabase_anon),
 ):
     result = (
         supabase.table("risk_scores")
@@ -22,7 +25,7 @@ async def get_risk_scores(
         .lte("lat", ne_lat)
         .gte("lng", sw_lng)
         .lte("lng", ne_lng)
-        .gt("expires_at", "now()")
+        .gt("expires_at", datetime.now(timezone.utc).isoformat())
         .execute()
     )
 
@@ -46,7 +49,7 @@ async def get_risk_scores(
 async def get_risk_score_at_point(
     lat: float,
     lng: float,
-    supabase: Client = Depends(get_supabase_service),
+    supabase: Client = Depends(get_supabase_anon),
 ):
     result = (
         supabase.table("risk_scores")
@@ -55,7 +58,7 @@ async def get_risk_score_at_point(
         .lte("lat", lat + 0.001)
         .gte("lng", lng - 0.001)
         .lte("lng", lng + 0.001)
-        .gt("expires_at", "now()")
+        .gt("expires_at", datetime.now(timezone.utc).isoformat())
         .order("score", desc=True)
         .limit(1)
         .execute()
@@ -68,3 +71,12 @@ async def get_risk_score_at_point(
         )
 
     return result.data[0]
+
+
+@router.post("/refresh")
+async def refresh_risk_scores_endpoint(
+    admin: dict = Depends(get_admin_user),
+    supabase: Client = Depends(get_supabase_service),
+):
+    written = refresh_risk_scores(supabase)
+    return {"message": "Risk scores refreshed", "grid_cells_written": written}

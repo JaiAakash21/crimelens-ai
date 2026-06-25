@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,17 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
+import { router } from "expo-router";
 import { useIncidents } from "../../src/hooks/useIncidents";
 import { IncidentCard } from "../../src/components/incident/IncidentCard";
 import { colors } from "../../src/constants";
 
 export default function HistoryScreen() {
   const { data: incidents, isLoading, isRefetching, refetch } = useIncidents();
+
+  const handleIncidentPress = useCallback((incidentId: string) => {
+    router.push(`/incident/${incidentId}` as any);
+  }, []);
 
   if (isLoading) {
     return (
@@ -39,7 +44,12 @@ export default function HistoryScreen() {
     <FlatList
       data={incidents}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <IncidentCard incident={item} />}
+      renderItem={({ item }) => (
+        <IncidentCard
+          incident={item}
+          onPress={() => handleIncidentPress(item.id)}
+        />
+      )}
       contentContainerStyle={styles.list}
       showsVerticalScrollIndicator={false}
       refreshControl={
