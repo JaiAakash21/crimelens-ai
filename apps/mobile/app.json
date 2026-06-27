@@ -1,50 +1,45 @@
 {
   "expo": {
-    "name": "CrimeLens AI",
-    "slug": "crimelens-ai",
+    "name": "Crime Lens",
+    "slug": "crime",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "scheme": "crimelens",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "backgroundColor": "#1a1a2e"
-    },
+    "icon": "./assets/images/icon.png",
+    "scheme": "test",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "ai.crimelens.app",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "CrimeLens uses your location to report incidents and show nearby safety information.",
-        "NSCameraUsageDescription": "Camera is used to capture incident images for evidence."
-      }
+      "icon": "./assets/expo.icon"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1a1a2e"
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "ai.crimelens.app",
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
-      ]
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-location",
       [
-        "expo-image-picker",
+        "expo-splash-screen",
         {
-          "photosPermission": "CrimeLens needs access to your photos to attach evidence to incident reports.",
-          "cameraPermission": "CrimeLens needs camera access to capture incident evidence."
+          "backgroundColor": "#208AEF",
+          "android": {
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 76
+          }
         }
       ],
-      "expo-asset"
+      "expo-secure-store"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     }
   }
 }

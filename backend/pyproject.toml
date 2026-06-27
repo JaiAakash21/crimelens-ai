@@ -1,0 +1,25 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]==0.115.6",
+    "google-genai>=1.2.0",
+    "google-generativeai==0.8.3",
+    "gotrue>=2.7.0",
+    "httpx>=0.26,<0.28",
+    "mypy==1.14.1",
+    "numpy==2.2.1",
+    "pydantic==2.10.4",
+    "pydantic-settings==2.7.1",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
+    "python-multipart==0.0.19",
+    "ruff==0.8.6",
+    "scikit-learn==1.6.1",
+    "supabase>=2.16.0",
+    "supabase-auth>=2.31.0",
+    "uvicorn[standard]==0.34.0",
+]
