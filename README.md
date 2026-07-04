@@ -5,27 +5,27 @@ Urban Safety Intelligence Platform powered by Artificial Intelligence for incide
 CrimeLens AI is an intelligent platform that empowers citizens and law enforcement agencies by providing real-time incident reporting, AI-assisted crime analysis, interactive crime mapping, and predictive insights to improve public safety.
 
 ## Key Features
-# Smart Incident Reporting
+### Smart Incident Reporting
 Report crime incidents in real time
 Add title, description, category, and location
 Simple and user-friendly reporting interface
 
-# Interactive Crime Map
+### Interactive Crime Map
 Google Maps integration
 Display reported incidents geographically
 Visualize crime-prone areas
 
-# Hotspot Detection
+### Hotspot Detection
 Detect areas with high crime concentration
 Support preventive policing
 Dynamic hotspot visualization
 
-# Smart Route Planning
+### Smart Route Planning
 OSRM Routing integration
 Suggest safer routes
 Avoid high-risk areas
 
-# Admin Dashboard
+### Admin Dashboard
 Monitor reported incidents
 Visualize crime trends
 Generate analytical reports
