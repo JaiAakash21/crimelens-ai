@@ -6,38 +6,38 @@ CrimeLens AI is an intelligent platform that empowers citizens and law enforceme
 
 ## Key Features
 ### Smart Incident Reporting
-Report crime incidents in real time
-Add title, description, category, and location
-Simple and user-friendly reporting interface
+Report crime incidents in real time, 
+Add title, description, category, and location ,
+Simple and user-friendly reporting interface.
 
 ### Interactive Crime Map
-Google Maps integration
-Display reported incidents geographically
-Visualize crime-prone areas
+Google Maps integration,
+Display reported incidents geographically ,
+Visualize crime-prone areas.
 
 ### Hotspot Detection
-Detect areas with high crime concentration
-Support preventive policing
-Dynamic hotspot visualization
+Detect areas with high crime concentration ,
+Support preventive policing,
+Dynamic hotspot visualization.
 
 ### Smart Route Planning
-OSRM Routing integration
-Suggest safer routes
-Avoid high-risk areas
+OSRM Routing integration,
+Suggest safer routes,
+Avoid high-risk areas.
 
 ### Admin Dashboard
-Monitor reported incidents
-Visualize crime trends
-Generate analytical reports
-Manage users and incidents
+Monitor reported incidents ,
+Visualize crime trends,
+Generate analytical reports,
+Manage users and incidents.
 
 ## Project Goals
-Improve public safety
-Enable smarter crime reporting
-Support proactive policing
-Provide AI-assisted decision making
-Enhance transparency between citizens and authorities
-Build safer and smarter communities
+1.Improve public safety 
+2.Enable smarter crime reporting
+3.Support proactive policing
+4.Provide AI-assisted decision making
+5.Enhance transparency between citizens and authorities
+6.Build safer and smarter communities
 
 ## Prerequisites
 
