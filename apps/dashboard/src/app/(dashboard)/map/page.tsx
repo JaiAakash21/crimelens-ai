@@ -1,8 +1,13 @@
 "use client";
 
 import { useIncidents, useHotspots, useRiskScores } from "@/hooks/use-api";
-import { MapView } from "@/components/map/map-view";
+import dynamic from "next/dynamic";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+const MapView = dynamic(() => import("@/components/map/map-view").then((m) => m.MapView), {
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full rounded-xl bg-muted animate-pulse" />,
+});
 
 export default function SafetyMapPage() {
   const { data: incidents, isLoading: incidentsLoading } = useIncidents({ per_page: 500 });

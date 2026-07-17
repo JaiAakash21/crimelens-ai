@@ -62,7 +62,7 @@ async def get_dashboard_stats(
         sum(risk_scores_list) / len(risk_scores_list) if risk_scores_list else 50.0
     )
 
-    top_type = supabase.table("incidents").select("incident_type, count").execute()
+    top_type = supabase.table("incidents").select("incident_type").execute()
     type_counts = {}
     for t in top_type.data or []:
         inc_type = t.get("incident_type", "other")
