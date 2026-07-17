@@ -1,3 +1,5 @@
+@import "leaflet/dist/leaflet.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -42,5 +44,12 @@
 .leaflet-container {
   width: 100%;
   height: 100%;
-  z-index: 0;
+  border-radius: 0.75rem;
+  touch-action: manipulation;
+}
+
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: unset;
 }

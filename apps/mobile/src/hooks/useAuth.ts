@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { getCurrentSession, loginWithEmail, signupWithEmail, logout } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
 
@@ -7,7 +6,7 @@ export function useAuth() {
   const { user, isAuthenticated, isLoading, setUser, setIsLoading } = useAuthStore();
 
   useEffect(() => {
-    getCurrentSession().finally(() => setIsLoading(false));
+    getCurrentSession().catch(() => {}).finally(() => setIsLoading(false));
   }, []);
 
   return { user, isAuthenticated, isLoading };

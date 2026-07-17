@@ -66,7 +66,7 @@ async def create_incident(
 @router.get("", response_model=IncidentListResponse)
 async def list_incidents(
     page: int = Query(default=1, ge=1),
-    per_page: int = Query(default=20, ge=1, le=100),
+    per_page: int = Query(default=20, ge=1, le=1000),
     incident_type: Optional[str] = Query(default=None),
     status: Optional[str] = Query(default=None),
     search: Optional[str] = Query(

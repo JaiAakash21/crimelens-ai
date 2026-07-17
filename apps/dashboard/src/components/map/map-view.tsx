@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Hotspot, Incident, RiskScore } from "@/types";
+import L from "leaflet";
+import { useEffect, useRef } from "react";
+import type { Incident, Hotspot, RiskScore } from "@/types";
 
 interface MapViewProps {
   incidents?: Incident[];
@@ -14,110 +15,128 @@ interface MapViewProps {
   zoom?: number;
 }
 
+const markerIcon = new L.DivIcon({
+  className: "",
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+  html: `<div style="width:12px;height:12px;border-radius:50%;background:#6366f1;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.4);"></div>`,
+});
+
+function getHotspotColor(riskLevel: string) {
+  switch (riskLevel) {
+    case "critical": return "#ef4444";
+    case "high": return "#f97316";
+    case "moderate": return "#f59e0b";
+    default: return "#22c55e";
+  }
+}
+
+function MapEvents() {
+  const map = useMap();
+  useEffect(() => {
+    setTimeout(() => map.invalidateSize(), 100);
+    const container = map.getContainer();
+    const stopWheel = (e: WheelEvent) => e.stopPropagation();
+    container.addEventListener("wheel", stopWheel, { passive: false });
+    return () => {
+      container.removeEventListener("wheel", stopWheel);
+    };
+  }, [map]);
+  return null;
+}
+
+function MapLayers({
+  incidents,
+  hotspots,
+}: {
+  incidents?: Incident[];
+  hotspots?: Hotspot[];
+}) {
+  const map = useMap();
+  const markersRef = useRef<L.Marker[]>([]);
+  const circlesRef = useRef<L.Circle[]>([]);
+
+  useEffect(() => {
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (incidents) {
+      incidents.forEach((inc) => {
+        const marker = L.marker([inc.lat, inc.lng], { icon: markerIcon })
+          .bindPopup(
+            `<b>${inc.title}</b><br />${inc.incident_type.replace(/_/g, " ")}<br />${new Date(inc.occurred_at).toLocaleDateString()}`
+          );
+        marker.addTo(map);
+        markersRef.current.push(marker);
+      });
+    }
+
+    return () => {
+      markersRef.current.forEach((m) => m.remove());
+      markersRef.current = [];
+    };
+  }, [map, incidents]);
+
+  useEffect(() => {
+    circlesRef.current.forEach((c) => c.remove());
+    circlesRef.current = [];
+
+    if (hotspots) {
+      hotspots.forEach((hs) => {
+        const color = getHotspotColor(hs.risk_level);
+        const circle = L.circle([hs.center_lat, hs.center_lng], {
+          radius: hs.radius_meters,
+          color,
+          fillColor: color,
+          fillOpacity: 0.15,
+          weight: 2,
+        }).bindPopup(
+          `<b>Hotspot #${hs.cluster_id}</b><br />Risk: ${hs.risk_level}<br />Incidents: ${hs.point_count}`
+        );
+        circle.addTo(map);
+        circlesRef.current.push(circle);
+      });
+    }
+
+    return () => {
+      circlesRef.current.forEach((c) => c.remove());
+      circlesRef.current = [];
+    };
+  }, [map, hotspots]);
+
+  return null;
+}
+
 export function MapView({
   incidents,
   hotspots,
-  riskScores,
   loading,
   center = [12.9716, 77.5946],
   zoom = 12,
 }: MapViewProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const leafletRef = useRef<any>(null);
-  const markersRef = useRef<any[]>([]);
-
-  useEffect(() => {
-    if (loading || !mapRef.current || mapInstanceRef.current) return;
-
-    const initMap = async () => {
-      const L = await import("leaflet");
-      await import("leaflet/dist/leaflet.css");
-
-      const map = L.map(mapRef.current!, {
-        center,
-        zoom,
-        zoomControl: true,
-        attributionControl: true,
-      });
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-        maxZoom: 19,
-      }).addTo(map);
-
-      leafletRef.current = L;
-      mapInstanceRef.current = map;
-    };
-
-    initMap();
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [loading]);
-
-  useEffect(() => {
-    if (!mapInstanceRef.current || !leafletRef.current) return;
-
-    const L = leafletRef.current;
-    const map = mapInstanceRef.current;
-
-    markersRef.current.forEach((m) => map.removeLayer(m));
-    markersRef.current = [];
-
-    const icon = L.divIcon({
-      className: "w-3 h-3 rounded-full bg-accent border-2 border-white shadow",
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-    });
-
-    incidents?.forEach((inc) => {
-      const marker = L.marker([inc.lat, inc.lng], { icon })
-        .addTo(map)
-        .bindPopup(
-          `<b>${inc.title}</b><br/>${inc.incident_type.replace(/_/g, " ")}<br/>${new Date(inc.occurred_at).toLocaleDateString()}`
-        );
-      markersRef.current.push(marker);
-    });
-
-    hotspots?.forEach((hs) => {
-      const color =
-        hs.risk_level === "critical"
-          ? "#ef4444"
-          : hs.risk_level === "high"
-            ? "#f97316"
-            : hs.risk_level === "moderate"
-              ? "#f59e0b"
-              : "#22c55e";
-
-      const circle = L.circle([hs.center_lat, hs.center_lng], {
-        radius: hs.radius_meters,
-        color,
-        fillColor: color,
-        fillOpacity: 0.15,
-        weight: 2,
-      })
-        .addTo(map)
-        .bindPopup(
-          `<b>Hotspot #${hs.cluster_id}</b><br/>Risk: ${hs.risk_level}<br/>Incidents: ${hs.point_count}`
-        );
-      markersRef.current.push(circle);
-    });
-  }, [incidents, hotspots]);
-
   if (loading) {
     return <Skeleton className="h-[500px] w-full rounded-xl" />;
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        <div ref={mapRef} className="h-[500px] w-full" />
-      </CardContent>
-    </Card>
+    <div
+      className="rounded-xl border bg-card shadow"
+      style={{ height: "500px", position: "relative", zIndex: 0 }}
+    >
+      <MapContainer
+        center={center}
+        zoom={zoom}
+        className="h-full w-full rounded-xl"
+        style={{ height: "100%", width: "100%" }}
+        zoomControl={true}
+      >
+        <MapEvents />
+        <TileLayer
+          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        />
+        <MapLayers incidents={incidents} hotspots={hotspots} />
+      </MapContainer>
+    </div>
   );
 }
